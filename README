@@ -1,0 +1,12 @@
+searching for better hashing functions for:
+
+Vec2S: short 
+Vec2I: int32 
+Vec2F: float
+Vec3S: short 
+Vec3I: int32 
+Vec3F: float
+
+Provide a way to evaluate the hash functions. 
+
+

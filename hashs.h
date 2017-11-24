@@ -85,5 +85,44 @@ struct Hash_Vec3F_Cast
     }
 };
 
+// TODO: hash for 2D function
+namespace std {
+
+template<>
+struct hash<Vec3S>
+{
+    std::size_t operator()(const Vec3S pt) const
+    {
+        const std::size_t h1 = std::hash<int16_t>()(pt.x);
+        const std::size_t h2 = std::hash<int16_t>()(pt.y);
+        const std::size_t h3 = std::hash<int16_t>()(pt.z);
+        return 73856093 * h1 ^ 19349669 * h2 ^ 83492791 * h3;
+    }
+};
 
 
+template<>
+struct hash<Vec3I>
+{
+    std::size_t operator()(const Vec3I pt) const
+    {
+        const std::size_t h1 = std::hash<int32_t>()(pt.x);
+        const std::size_t h2 = std::hash<int32_t>()(pt.y);
+        const std::size_t h3 = std::hash<int32_t>()(pt.z);
+        return 73856093 * h1 ^ 19349669 * h2 ^ 83492791 * h3;
+    }
+};
+
+template<>
+struct hash<Vec3F>
+{
+    std::size_t operator()(const Vec3F pt) const
+    {
+        const std::size_t h1 = std::hash<float>()(pt.x);
+        const std::size_t h2 = std::hash<float>()(pt.y);
+        const std::size_t h3 = std::hash<float>()(pt.z);
+        return 73856093 * h1 ^ 19349669 * h2 ^ 83492791 * h3;
+    }
+};
+
+}

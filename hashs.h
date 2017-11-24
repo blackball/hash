@@ -32,6 +32,47 @@ struct Hash_Vec3F
     }    
 };
 
+
+struct Hash_Vec3F_ByVal
+{
+    std::size_t operator()(const Vec3F pt) const 
+    {
+        const size_t h1 = std::hash<double>()(pt.x);
+        const size_t h2 = std::hash<double>()(pt.y);
+        const size_t h3 = std::hash<double>()(pt.z);
+
+        return 73856093 * h1 ^ 19349669 * h2 ^ 83492791 * h3;
+    }    
+};
+
+
+struct Hash_Vec3F_Opt
+{
+    std::size_t operator()(const Vec3F &pt) const 
+    {
+        std::hash<double> H; 
+        const size_t h1 = H(pt.x);
+        const size_t h2 = H(pt.y);
+        const size_t h3 = H(pt.z);
+
+        return 73856093 * h1 ^ 19349669 * h2 ^ 83492791 * h3;
+    }    
+};
+
+
+struct Hash_Vec3F_Opt_ByVal
+{
+    std::size_t operator()(const Vec3F pt) const 
+    {
+        std::hash<double> H; 
+        const size_t h1 = H(pt.x);
+        const size_t h2 = H(pt.y);
+        const size_t h3 = H(pt.z);
+
+        return 73856093 * h1 ^ 19349669 * h2 ^ 83492791 * h3;
+    }    
+};
+
 // TODO: sth wrong with this hash function 
 struct Hash_Vec3F_Cast
 {

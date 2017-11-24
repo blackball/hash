@@ -1,3 +1,4 @@
+#include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -29,7 +30,7 @@ GenerateDB(std::vector<Vec3F> &db) {
 
 template<typename T>
 static double
-Mean(const std::vector<T> &ts)
+CalcMean(const std::vector<T> &ts)
 {
     double sum = 0;
     for (int i = 0; i < ts.size(); ++i)
@@ -54,7 +55,7 @@ SpeedTest(const std::vector<T> &db, int trials = 20) {
         ts[i] = timer.GetDurationNS();
     }
 
-    printf("Speed(ns): %lf\n", Mean(ts));
+    printf("Speed(ns): %lf\n", CalcMean(ts));
 }
 
 /**
@@ -116,13 +117,102 @@ Eval(const char *name) {
 }
 
 
-int
-main(int argc, char *argv[]) {    
-    Eval<Vec3S, Hash_Vec3S_Rehash, 2048>("Hash_Vec3S_Rehash");    
-    Eval<Vec3S, Hash_Vec3S, 2048>("Hash_Vec3S");
+struct Hash_Old
+{
+    std::size_t operator()(const Vec3F &pt) const 
+    {
+        std::hash<double> H; 
+        const size_t h1 = H(pt.x);
+        const size_t h2 = H(pt.y);
+        const size_t h3 = H(pt.z);
+        return 73856093 * h1 ^ 19349669 * h2 ^ 83492791 * h3;
+    }    
+};
+
+
+struct Hash_New
+{
+    std::size_t operator()(const Vec3F &pt) const 
+    {
+        const size_t h1 = std::hash<double>()(pt.x);
+        const size_t h2 = std::hash<double>()(pt.y);
+        const size_t h3 = std::hash<double>()(pt.z);
+        return 73856093 * h1 ^ 19349669 * h2 ^ 83492791 * h3;
+    }    
+};
+
+
+template<class H>
+static void
+Bench(unsigned int seed = 7653) {
+    srand((unsigned int)time(NULL));
+    const int N = 10000;
+
+    Timer timer; 
+    H hash;
     
-    //Eval<Vec3F, Hash_Vec3F, 2048>("Hash_Vec3F");
+    std::vector<double> ts(N);
+    std::vector<std::size_t> hvs(N);
+    
+#define RAND() static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/10000))
+    for (int i = 0; i < N; ++i)
+    {
+        const Vec3F v(RAND(), RAND(), RAND());
+
+        timer.Start();
+        const std::size_t hv = hash(v);
+        timer.Stop();
+
+        hvs[i] = hv; 
+        ts[i] = timer.GetDurationNS();
+    }
+    printf("mean: %lf\n", CalcMean(ts));
+}
+
+static void
+BenchDriver()
+{
+    Bench<Hash_New>(898918);
+    Bench<Hash_Old>(898918);
+
+
+    Bench<Hash_New>(8933918);
+    Bench<Hash_Old>(8933918);
+
+    Bench<Hash_New>(89339118);
+    Bench<Hash_Old>(89339118);    
+}
+
+static void
+Test()
+{
+    srand(21321);
+    Hash_Vec3F_Cast H; 
+    for (int i = 0; i < 10; ++i)
+    {
+        //const float f = rand();
+        const std::size_t ii = rand();
+        const float f = static_cast <float> (ii) / (static_cast <float> (RAND_MAX/10000));
+        Vec3F v(f,f,f);
+        printf("ii: %lu, val: %f, hash: %lu\n", ii, f, H(v));
+    }
+}
+
+
+int
+main(int argc, char *argv[]) {
+    
+    // Eval<Vec3S, Hash_Vec3S_Rehash, 2048>("Hash_Vec3S_Rehash");    
+    // Eval<Vec3S, Hash_Vec3S, 2048>("Hash_Vec3S");
+    
+    // Eval<Vec3F, Hash_Vec3F, 2048>("Hash_Vec3F");
+    // Eval<Vec3F, Hash_Vec3F_ByVal, 2048>("Hash_Vec3F_ByVal");
+    // Eval<Vec3F, Hash_Vec3F_Opt, 2048>("Hash_Vec3F_Opt");
+    // Eval<Vec3F, Hash_Vec3F_Opt_ByVal, 2048>("Hash_Vec3F_Opt_ByVal");
+
+    // Test();
     //Eval<Vec3F, Hash_Vec3F_Cast, 2048>("Hash_Vec3F_Cast");
 
+    BenchDriver();
     return 0;
 }
